@@ -12,3 +12,12 @@ Don't forget to create your plugin PHP file with metadata otherwise it will be e
 Run the <kbd>phpunit</kbd> command.
 
 If no error occur then congratulations! You are ready to start plugin development.
+
+### Notice
+
+These files and folders are copied after I run the command on Windows sub system Ubuntu.<br>
+All the credits are for these pages:
+
+* https://make.wordpress.org/cli/handbook/plugin-unit-tests/ - WordPress official tutorial.
+* https://www.chanhvuong.com/3368/install-subversion-on-ubuntu-wsl-on-windows-10/ Install SVN on Ubuntu.
+* https://askubuntu.com/questions/223012/how-can-i-install-mysql-client-on-10-04 Install MySQL client on Ubuntu.
