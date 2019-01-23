@@ -1,6 +1,6 @@
 # WordPress archive file and json file.
 
-### Install
+### Install:
 #### This folder contain files:
 
 * wp-latest.json. You can modify its data to the version you want.
