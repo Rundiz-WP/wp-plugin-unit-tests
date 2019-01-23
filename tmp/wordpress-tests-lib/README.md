@@ -1,6 +1,6 @@
 # Tests config and functions
 
-### Todo:
+### Install:
 1. Open wp-tests-config.php file.
 2. Change the database values.
 3. Save changed.
