@@ -2,7 +2,7 @@
 
 These files and folders for developers who want to run WordPress plugin unit tests on Windows but cannot install it using bash.
 
-### To do:
+### Install:
 
 All you have to do is download and extract everything in /tmp folder into your PHP CLI temp folder location and follow instructions on 3 README.md files.
 
