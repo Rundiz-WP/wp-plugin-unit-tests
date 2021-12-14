@@ -4,7 +4,9 @@ These files and folders for developers who want to run WordPress plugin unit tes
 
 ### Install:
 
-* Download and extract everything inside **tmp** folder into your PHP CLI temp folder location.
+* Download and extract everything inside **tmp** folder into your PHP CLI temp folder location.<br>
+	For Windows, use this command to find out. `php -i | findstr temp`.<br>
+	For Linux, use this command to find out. `php -i | grep temp`.
 * Follow instructions on 3 **README.md** files.
 * Follow the **Generate the plugin test files** instruction on [thispage][1]. Do not go to other step and no need to run bash. OR...
 	* Download the [demo plugin test][3] from [this link][3].
