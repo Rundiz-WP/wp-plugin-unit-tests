@@ -3,6 +3,6 @@
 ### Install:
 1. Download WordPress zip.
 2. Extracted files and folders here.
-3. It will be contain wp-admin, wp-content, wp-includes but no wp-config.php.
+3. These folders must be in this level. **wp-admin**, **wp-content**, **wp-includes**. The file **wp-config.php** is no need.
 
 That's it for this folder.
