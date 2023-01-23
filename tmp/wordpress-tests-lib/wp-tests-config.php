@@ -62,3 +62,5 @@ define( 'WP_TESTS_TITLE', 'Test Blog' );
 define( 'WP_PHP_BINARY', 'php' );
 
 define( 'WPLANG', '' );
+
+require_once 'vendor/autoload.php';
