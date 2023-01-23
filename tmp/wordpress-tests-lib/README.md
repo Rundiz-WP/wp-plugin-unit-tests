@@ -11,4 +11,7 @@
 ### Upgrade/Update:
 
 To update newer version of **includes**. Try to download files and folders from **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/tests/phpunit/includes/**.  
-Replace `{WORDPRESS_VERSION}` with your WordPress version (recommend latest). For example: `6.1.1`.
+To update newer version of **data**. Try to download files and folders from **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/tests/phpunit/data/**.
+
+Replace `{WORDPRESS_VERSION}` with your WordPress version (recommend latest). For example: `6.1.1`.  
+You may download use subversion client.
