@@ -1,10 +1,11 @@
 <?php
-require_once( ABSPATH . '/wp-includes/class-phpmailer.php' );
+require_once ABSPATH . 'wp-includes/PHPMailer/PHPMailer.php';
+require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
 
-class MockPHPMailer extends PHPMailer {
-	var $mock_sent = array();
+class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
+	public $mock_sent = array();
 
-	function preSend() {
+	public function preSend() {
 		$this->Encoding = '8bit';
 		return parent::preSend();
 	}
@@ -12,7 +13,7 @@ class MockPHPMailer extends PHPMailer {
 	/**
 	 * Override postSend() so mail isn't actually sent.
 	 */
-	function postSend() {
+	public function postSend() {
 		$this->mock_sent[] = array(
 			'to'      => $this->to,
 			'cc'      => $this->cc,
@@ -53,10 +54,10 @@ class MockPHPMailer extends PHPMailer {
 	 */
 	public function get_recipient( $address_type, $mock_sent_index = 0, $recipient_index = 0 ) {
 		$retval = false;
-		$mock = $this->get_sent( $mock_sent_index );
+		$mock   = $this->get_sent( $mock_sent_index );
 		if ( $mock ) {
 			if ( isset( $mock->{$address_type}[ $recipient_index ] ) ) {
-				$address_index = $mock->{$address_type}[ $recipient_index ];
+				$address_index  = $mock->{$address_type}[ $recipient_index ];
 				$recipient_data = array(
 					'address' => ( isset( $address_index[0] ) && ! empty( $address_index[0] ) ) ? $address_index[0] : 'No address set',
 					'name'    => ( isset( $address_index[1] ) && ! empty( $address_index[1] ) ) ? $address_index[1] : 'No name set',
@@ -75,7 +76,7 @@ class MockPHPMailer extends PHPMailer {
  *
  * @since 4.4.0
  *
- * @return object|bool
+ * @return MockPHPMailer|false
  */
 function tests_retrieve_phpmailer_instance() {
 	$mailer = false;
@@ -95,7 +96,12 @@ function tests_retrieve_phpmailer_instance() {
 function reset_phpmailer_instance() {
 	$mailer = tests_retrieve_phpmailer_instance();
 	if ( $mailer ) {
-		$GLOBALS['phpmailer'] = new MockPHPMailer( true );
+		$mailer             = new MockPHPMailer( true );
+		$mailer::$validator = static function ( $email ) {
+			return (bool) is_email( $email );
+		};
+
+		$GLOBALS['phpmailer'] = $mailer;
 		return true;
 	}
 

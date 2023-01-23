@@ -1,12 +1,27 @@
 <?php
+require_once __DIR__ . '/class-basic-object.php';
 
-require_once dirname( __FILE__ ) . '/class-basic-object.php';
-require_once dirname( __FILE__ ) . '/class-basic-subclass.php';
+/**
+ * Retrieves PHPUnit runner version.
+ *
+ * @return double The version number.
+ */
+function tests_get_phpunit_version() {
+	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
+		$version = PHPUnit\Runner\Version::id();
+	} elseif ( class_exists( 'PHPUnit_Runner_Version' ) ) {
+		$version = PHPUnit_Runner_Version::id();
+	} else {
+		$version = 0;
+	}
+
+	return $version;
+}
 
 /**
  * Resets various `$_SERVER` variables that can get altered during tests.
  */
-function tests_reset__SERVER() {
+function tests_reset__SERVER() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$_SERVER['HTTP_HOST']       = WP_TESTS_DOMAIN;
 	$_SERVER['REMOTE_ADDR']     = '127.0.0.1';
 	$_SERVER['REQUEST_METHOD']  = 'GET';
@@ -19,38 +34,72 @@ function tests_reset__SERVER() {
 	unset( $_SERVER['HTTPS'] );
 }
 
-// For adding hooks before loading WP
-function tests_add_filter($tag, $function_to_add, $priority = 10, $accepted_args = 1) {
+/**
+ * Adds hooks before loading WP.
+ *
+ * @see add_filter()
+ *
+ * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
+ * @param callable $function_to_add The callback to be run when the filter is applied.
+ * @param int      $priority        Optional. Used to specify the order in which the functions
+ *                                  associated with a particular action are executed.
+ *                                  Lower numbers correspond with earlier execution,
+ *                                  and functions with the same priority are executed
+ *                                  in the order in which they were added to the action. Default 10.
+ * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
+ * @return true
+ */
+function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
 	global $wp_filter;
 
 	if ( function_exists( 'add_filter' ) ) {
 		add_filter( $tag, $function_to_add, $priority, $accepted_args );
 	} else {
-		$idx = _test_filter_build_unique_id($tag, $function_to_add, $priority);
-		$wp_filter[$tag][$priority][$idx] = array('function' => $function_to_add, 'accepted_args' => $accepted_args);
+		$idx = _test_filter_build_unique_id( $tag, $function_to_add, $priority );
+
+		$wp_filter[ $tag ][ $priority ][ $idx ] = array(
+			'function'      => $function_to_add,
+			'accepted_args' => $accepted_args,
+		);
 	}
 	return true;
 }
 
-function _test_filter_build_unique_id($tag, $function, $priority) {
-	if ( is_string($function) )
+/**
+ * Generates a unique function ID based on the given arguments.
+ *
+ * @see _wp_filter_build_unique_id()
+ *
+ * @param string   $tag      Unused. The name of the filter to build ID for.
+ * @param callable $function The function to generate ID for.
+ * @param int      $priority Unused. The order in which the functions
+ *                           associated with a particular action are executed.
+ * @return string Unique function ID for usage as array key.
+ */
+function _test_filter_build_unique_id( $tag, $function, $priority ) {
+	if ( is_string( $function ) ) {
 		return $function;
+	}
 
-	if ( is_object($function) ) {
-		// Closures are currently implemented as objects
+	if ( is_object( $function ) ) {
+		// Closures are currently implemented as objects.
 		$function = array( $function, '' );
 	} else {
 		$function = (array) $function;
 	}
 
-	if (is_object($function[0]) ) {
-		return spl_object_hash($function[0]) . $function[1];
-	} else if ( is_string($function[0]) ) {
-		// Static Calling
-		return $function[0].$function[1];
+	if ( is_object( $function[0] ) ) {
+		// Object class calling.
+		return spl_object_hash( $function[0] ) . $function[1];
+	} elseif ( is_string( $function[0] ) ) {
+		// Static calling.
+		return $function[0] . '::' . $function[1];
 	}
 }
 
+/**
+ * Deletes all data from the database.
+ */
 function _delete_all_data() {
 	global $wpdb;
 
@@ -60,15 +109,17 @@ function _delete_all_data() {
 		$wpdb->comments,
 		$wpdb->commentmeta,
 		$wpdb->term_relationships,
-		$wpdb->termmeta
+		$wpdb->termmeta,
 	) as $table ) {
+		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table}" );
 	}
 
 	foreach ( array(
 		$wpdb->terms,
-		$wpdb->term_taxonomy
+		$wpdb->term_taxonomy,
 	) as $table ) {
+		//phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DELETE FROM {$table} WHERE term_id != 1" );
 	}
 
@@ -78,6 +129,9 @@ function _delete_all_data() {
 	$wpdb->query( "DELETE FROM {$wpdb->usermeta} WHERE user_id != 1" );
 }
 
+/**
+ * Deletes all posts from the database.
+ */
 function _delete_all_posts() {
 	global $wpdb;
 
@@ -95,52 +149,127 @@ function _delete_all_posts() {
 	}
 }
 
+/**
+ * Handles the WP die handler by outputting the given values as text.
+ *
+ * @since UT (3.7.0)
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
+ */
 function _wp_die_handler( $message, $title = '', $args = array() ) {
-	if ( !$GLOBALS['_wp_die_disabled'] ) {
-		_wp_die_handler_txt( $message, $title, $args);
+	if ( ! $GLOBALS['_wp_die_disabled'] ) {
+		_wp_die_handler_txt( $message, $title, $args );
 	} else {
-		//Ignore at our peril
+		// Ignore at our peril.
 	}
 }
 
+/**
+ * Disables the WP die handler.
+ *
+ * @since UT (3.7.0)
+ */
 function _disable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = true;
 }
 
+/**
+ * Enables the WP die handler.
+ *
+ * @since UT (3.7.0)
+ */
 function _enable_wp_die() {
 	$GLOBALS['_wp_die_disabled'] = false;
 }
 
+/**
+ * Returns the die handler.
+ *
+ * @since UT (3.7.0)
+ *
+ * @return string The die handler.
+ */
 function _wp_die_handler_filter() {
 	return '_wp_die_handler';
 }
 
+/**
+ * Returns the die handler.
+ *
+ * @since 4.9.0
+ *
+ * @return string The die handler.
+ */
 function _wp_die_handler_filter_exit() {
 	return '_wp_die_handler_exit';
 }
 
+/**
+ * Dies without an exit.
+ *
+ * @since 4.0.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
+ */
 function _wp_die_handler_txt( $message, $title, $args ) {
-	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach( $args as $k => $v ){
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
 }
 
+/**
+ * Dies with an exit.
+ *
+ * @since 4.9.0
+ * @since 6.1.0 The `$message` parameter can accept a `WP_Error` object.
+ *
+ * @param string|WP_Error $message Error message or WP_Error object.
+ * @param string          $title   Error title.
+ * @param array           $args    Arguments passed to wp_die().
+ */
 function _wp_die_handler_exit( $message, $title, $args ) {
-	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	list( $message, $title, $args ) = _wp_die_process_input( $message, $title, $args );
+
+	echo "\nwp_die() called\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
-		echo "Args: \n";
-		foreach( $args as $k => $v ){
-			echo "\t $k : $v\n";
+		echo "Args:\n";
+		foreach ( $args as $key => $value ) {
+			if ( ! is_scalar( $value ) ) {
+				$value = var_export( $value, true );
+			}
+
+			echo "\t$key: $value\n";
 		}
 	}
+
 	exit( 1 );
 }
 
@@ -158,29 +287,42 @@ function _set_default_permalink_structure_for_tests() {
 
 /**
  * Helper used with the `upload_dir` filter to remove the /year/month sub directories from the uploads path and URL.
+ *
+ * @return array The altered array.
  */
 function _upload_dir_no_subdir( $uploads ) {
 	$subdir = $uploads['subdir'];
 
 	$uploads['subdir'] = '';
-	$uploads['path'] = str_replace( $subdir, '', $uploads['path'] );
-	$uploads['url'] = str_replace( $subdir, '', $uploads['url'] );
+	$uploads['path']   = str_replace( $subdir, '', $uploads['path'] );
+	$uploads['url']    = str_replace( $subdir, '', $uploads['url'] );
 
 	return $uploads;
 }
 
 /**
  * Helper used with the `upload_dir` filter to set https upload URL.
+ *
+ * @return array The altered array.
  */
 function _upload_dir_https( $uploads ) {
-	$uploads['url'] = str_replace( 'http://', 'https://', $uploads['url'] );
+	$uploads['url']     = str_replace( 'http://', 'https://', $uploads['url'] );
 	$uploads['baseurl'] = str_replace( 'http://', 'https://', $uploads['baseurl'] );
 
 	return $uploads;
 }
 
+/**
+ * Use the Spy_REST_Server class for the REST server.
+ *
+ * @return string The server class name.
+ */
+function _wp_rest_server_class_filter() {
+	return 'Spy_REST_Server';
+}
+
 // Skip `setcookie` calls in auth_cookie functions due to warning:
-// Cannot modify header information - headers already sent by ...
+// Cannot modify header information - headers already sent by...
 tests_add_filter( 'send_auth_cookies', '__return_false' );
 
 /**
@@ -190,9 +332,10 @@ tests_add_filter( 'send_auth_cookies', '__return_false' );
  * @since 5.0.0
  */
 function _unhook_block_registration() {
-	remove_action( 'init', 'register_block_core_archives' );
-	remove_action( 'init', 'register_block_core_categories' );
-	remove_action( 'init', 'register_block_core_latest_posts' );
-	remove_action( 'init', 'register_block_core_shortcode' );
+	require __DIR__ . '/unregister-blocks-hooks.php';
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'register_block_core_legacy_widget' );
+	remove_action( 'init', 'register_block_core_widget_group' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
