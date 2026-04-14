@@ -19,7 +19,7 @@ You can update all the files in folder **data**, **includes** use following URLs
 #### Manual
 Download all files and folders from the URLs above to this folder on your temp location.
 
-Replace `{WORDPRESS_VERSION}` with your WordPress version (recommend latest). For example: `6.7.1`.  
+Replace `{WORDPRESS_VERSION}` with your WordPress version (recommend latest). For example: `6.9`.  
 #### Use SVN client
 You may download use sub version client such as TortoiseSVN. Follow these instruction on target folder one by one.
 
@@ -30,5 +30,5 @@ For new check out:
 
 For upgrade:
 1. Right click on working copy (**data**, and **includes**) and select 'Switch...'
-2. Change WordPress version number to what you want. For example `6.7.1`.
+2. Change WordPress version number to what you want. For example `6.9`.
 3. Click OK.
