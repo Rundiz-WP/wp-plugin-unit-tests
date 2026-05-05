@@ -15,6 +15,8 @@ You can update all the files in folder **data**, **includes** use following URLs
 
 * For **data** folder: **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/tests/phpunit/data/**
 * For **includes** folder: **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/tests/phpunit/includes/**
+* For a file **composer.json**, it was downloaded from **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/**
+* For a file **wp-tests-config.php**, it was downloaded from **http://develop.svn.wordpress.org/tags/{WORDPRESS_VERSION}/wp-tests-config-sample.php** but renamed.
 
 #### Manual
 Download all files and folders from the URLs above to this folder on your temp location.
